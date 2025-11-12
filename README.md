@@ -120,7 +120,7 @@ let email = Email(
     to: [try EmailAddress("recipient@example.com")],
     from: try EmailAddress("sender@example.com"),
     subject: "Custom Message",
-    body: .customMultipart(multipart)
+    body: .multipart(multipart)
 )
 ```
 
@@ -166,11 +166,10 @@ public struct Email: Hashable, Sendable, Codable {
 Email body content types.
 
 ```swift
-public enum Body: Hashable, Sendable, Codable {
-    case text(String, charset: String = "UTF-8")
-    case html(String, charset: String = "UTF-8")
-    case multipart(text: String, html: String, charset: String = "UTF-8")
-    case customMultipart(RFC_2046.Multipart)
+public enum Body: Hashable, Sendable {
+    case text(Data, charset: RFC_2045.Charset)
+    case html(Data, charset: RFC_2045.Charset)
+    case multipart(RFC_2046.Multipart)
 
     public var contentType: RFC_2045.ContentType
     public var transferEncoding: RFC_2045.ContentTransferEncoding?
