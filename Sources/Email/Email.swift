@@ -54,7 +54,13 @@ public struct Email: Hashable, Sendable {
     public let body: Body
 
     /// Additional custom headers
-    public let headers: [RFC_5322.HeaderName: String]
+    ///
+    /// These are supplemental headers beyond the typed properties (to, from, subject, etc.).
+    /// MIME headers (Content-Type, Content-Transfer-Encoding) are automatically determined
+    /// by the `body` property and should not be included here.
+    ///
+    /// Common use cases: X-Mailer, List-Unsubscribe, X-Priority, etc.
+    public let additionalHeaders: [RFC_5322.Header]
 
     /// Creates an email message
     ///
@@ -66,7 +72,7 @@ public struct Email: Hashable, Sendable {
     ///   - bcc: Blind carbon copy addresses (optional)
     ///   - subject: Email subject
     ///   - body: Email body content
-    ///   - headers: Additional custom headers (optional)
+    ///   - additionalHeaders: Additional custom headers (optional)
     /// - Throws: `Email.Error.emptyRecipients` if the `to` array is empty
     public init(
         to: [EmailAddress],
@@ -76,7 +82,7 @@ public struct Email: Hashable, Sendable {
         bcc: [EmailAddress]? = nil,
         subject: String,
         body: Body,
-        headers: [RFC_5322.HeaderName: String] = [:]
+        additionalHeaders: [RFC_5322.Header] = []
     ) throws {
         guard !to.isEmpty else {
             throw Email.Error.emptyRecipients
@@ -89,14 +95,16 @@ public struct Email: Hashable, Sendable {
         self.bcc = bcc
         self.subject = subject
         self.body = body
-        self.headers = headers
+        self.additionalHeaders = additionalHeaders
     }
 
     /// All MIME headers including Content-Type
     ///
-    /// Combines custom headers with MIME headers from the body.
-    public var allHeaders: [RFC_5322.HeaderName: String] {
-        var result = headers
+    /// Combines additional headers with MIME headers from the body.
+    /// MIME headers (Content-Type, Content-Transfer-Encoding) are automatically
+    /// determined from the `body` property.
+    public var allHeaders: [RFC_5322.Header] {
+        var result = additionalHeaders
         result[.contentType] = body.contentType.headerValue
         if let encoding = body.transferEncoding {
             result[.contentTransferEncoding] = encoding.headerValue
@@ -304,21 +312,21 @@ extension Email {
     ///   - from: Sender address
     ///   - subject: Email subject
     ///   - text: Plain text content
-    ///   - headers: Additional headers
+    ///   - additionalHeaders: Additional headers
     /// - Throws: `Email.Error.emptyRecipients` if the `to` array is empty
     public init(
         to: [EmailAddress],
         from: EmailAddress,
         subject: String,
         text: String,
-        headers: [RFC_5322.HeaderName: String] = [:]
+        additionalHeaders: [RFC_5322.Header] = []
     ) throws {
         try self.init(
             to: to,
             from: from,
             subject: subject,
             body: .text(text),
-            headers: headers
+            additionalHeaders: additionalHeaders
         )
     }
 
@@ -329,21 +337,21 @@ extension Email {
     ///   - from: Sender address
     ///   - subject: Email subject
     ///   - html: HTML content
-    ///   - headers: Additional headers
+    ///   - additionalHeaders: Additional headers
     /// - Throws: `Email.Error.emptyRecipients` if the `to` array is empty
     public init(
         to: [EmailAddress],
         from: EmailAddress,
         subject: String,
         html: String,
-        headers: [RFC_5322.HeaderName: String] = [:]
+        additionalHeaders: [RFC_5322.Header] = []
     ) throws {
         try self.init(
             to: to,
             from: from,
             subject: subject,
             body: .html(html),
-            headers: headers
+            additionalHeaders: additionalHeaders
         )
     }
 
@@ -355,7 +363,7 @@ extension Email {
     ///   - subject: Email subject
     ///   - text: Plain text content
     ///   - html: HTML content
-    ///   - headers: Additional headers
+    ///   - additionalHeaders: Additional headers
     /// - Throws: `Email.Error.emptyRecipients` if the `to` array is empty
     public init(
         to: [EmailAddress],
@@ -363,14 +371,14 @@ extension Email {
         subject: String,
         text: String,
         html: String,
-        headers: [RFC_5322.HeaderName: String] = [:]
+        additionalHeaders: [RFC_5322.Header] = []
     ) throws {
         try self.init(
             to: to,
             from: from,
             subject: subject,
             body: .multipart(try .alternative(textContent: text, htmlContent: html)),
-            headers: headers
+            additionalHeaders: additionalHeaders
         )
     }
 }
@@ -379,7 +387,7 @@ extension Email {
 
 extension Email: Codable {
     enum CodingKeys: String, CodingKey {
-        case to, from, replyTo, cc, bcc, subject, body, headers
+        case to, from, replyTo, cc, bcc, subject, body, additionalHeaders
     }
 
     public init(from decoder: Decoder) throws {
@@ -391,7 +399,7 @@ extension Email: Codable {
         self.bcc = try container.decodeIfPresent([EmailAddress].self, forKey: .bcc)
         self.subject = try container.decode(String.self, forKey: .subject)
         self.body = try container.decode(Body.self, forKey: .body)
-        self.headers = try container.decode([RFC_5322.HeaderName: String].self, forKey: .headers)
+        self.additionalHeaders = try container.decode([RFC_5322.Header].self, forKey: .additionalHeaders)
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -403,7 +411,7 @@ extension Email: Codable {
         try container.encodeIfPresent(bcc, forKey: .bcc)
         try container.encode(subject, forKey: .subject)
         try container.encode(body, forKey: .body)
-        try container.encode(headers, forKey: .headers)
+        try container.encode(additionalHeaders, forKey: .additionalHeaders)
     }
 }
 

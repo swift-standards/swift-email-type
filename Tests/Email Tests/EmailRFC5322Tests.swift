@@ -107,9 +107,9 @@ struct EmailRFC5322Tests {
             from: EmailAddress("sender@example.com"),
             subject: "Test",
             body: "Test",
-            headers: [
-                "X-Custom-Header": "custom-value",
-                "X-Priority": "1"
+            additionalHeaders: [
+                .init(name: "X-Custom-Header", value: "custom-value"),
+                .init(name: "X-Priority", value: "1")
             ]
         )
 

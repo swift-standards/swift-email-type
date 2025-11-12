@@ -59,13 +59,13 @@ struct ReadmeVerificationTests {
             from: EmailAddress("sender@example.com"),
             subject: "Tracked Email",
             html: "<h1>Hello!</h1>",
-            headers: [
-                "X-Campaign-ID": "newsletter-2024",
-                "X-Mailer": "MyApp 1.0",
+            additionalHeaders: [
+                .init(name: "X-Campaign-ID", value: "newsletter-2024"),
+                .init(name: "X-Mailer", value: "MyApp 1.0"),
             ]
         )
 
-        #expect(email.headers["X-Campaign-ID"] == "newsletter-2024")
-        #expect(email.headers["X-Mailer"] == "MyApp 1.0")
+        #expect(email.additionalHeaders[RFC_5322.Header.Name("X-Campaign-ID")] == "newsletter-2024")
+        #expect(email.additionalHeaders[RFC_5322.Header.Name("X-Mailer")] == "MyApp 1.0")
     }
 }
