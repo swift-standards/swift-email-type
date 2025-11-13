@@ -16,10 +16,13 @@ concurrency:
 jobs:
   # Primary development workflow: Latest Swift on macOS with debug build
   macos-latest:
-    name: macOS (Swift latest, debug)
-    runs-on: macos-latest
+    name: macOS (Swift 6.2, debug)
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v5
+
+      - name: Select Xcode 26.0
+        run: sudo xcode-select -s /Applications/Xcode_26.0.app
 
       - name: Print Swift version
         run: swift --version
@@ -48,9 +51,9 @@ jobs:
 
   # Production validation: Latest Swift on Linux with release build
   linux-latest:
-    name: Ubuntu (Swift latest, release)
+    name: Ubuntu (Swift 6.2, release)
     runs-on: ubuntu-latest
-    container: swift:latest
+    container: swift:6.2
     steps:
       - uses: actions/checkout@v5
 

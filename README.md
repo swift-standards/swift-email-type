@@ -1,5 +1,6 @@
 # swift-email-type
 
+[![CI](https://github.com/swift-standards/swift-email-type/workflows/CI/badge.svg)](https://github.com/swift-standards/swift-email-type/actions/workflows/ci.yml)
 ![Development Status](https://img.shields.io/badge/status-active--development-blue.svg)
 
 Type-safe email message representation built on RFC standards
