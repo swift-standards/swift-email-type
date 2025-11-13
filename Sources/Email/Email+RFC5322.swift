@@ -32,17 +32,22 @@ extension RFC_5322.Message {
     /// - Throws: If email addresses cannot be parsed or email is invalid
     public init(from email: Email) throws {
         // Convert from EmailAddress to RFC_5322.EmailAddress
-        let from = try RFC_5322.EmailAddress(email.from.rawValue)
-        let to = try email.to.map { try RFC_5322.EmailAddress($0.rawValue) }
+        let from = try RFC_5322.EmailAddress(email.from)
+        let to = try email.to.map { try RFC_5322.EmailAddress($0) }
 
         // Convert optional CC addresses
         let cc: [RFC_5322.EmailAddress]? = try email.cc.map { ccList in
-            try ccList.map { try RFC_5322.EmailAddress($0.rawValue) }
+            try ccList.map { try RFC_5322.EmailAddress($0) }
+        }
+
+        // Convert optional BCC addresses
+        let bcc: [RFC_5322.EmailAddress]? = try email.bcc.map { bccList in
+            try bccList.map { try RFC_5322.EmailAddress($0) }
         }
 
         // Convert optional Reply-To address
         let replyTo: RFC_5322.EmailAddress? = try email.replyTo.map {
-            try RFC_5322.EmailAddress($0.rawValue)
+            try RFC_5322.EmailAddress($0)
         }
 
         // Generate Message-ID if not provided in additional headers
@@ -69,7 +74,7 @@ extension RFC_5322.Message {
             from: from,
             to: to,
             cc: cc,
-            bcc: nil,  // BCC is intentionally excluded from message headers
+            bcc: bcc,  // Stored for SMTP envelope; excluded from rendered message headers
             replyTo: replyTo,
             subject: email.subject,
             date: Date(),  // Current date for message generation

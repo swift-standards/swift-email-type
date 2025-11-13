@@ -33,7 +33,7 @@ let package = Package(
             ]
         ),
         .testTarget(
-            name: "Email Tests",
+            name: "Email Type Tests",
             dependencies: ["Email"]
         )
     ]
