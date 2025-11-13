@@ -13,7 +13,7 @@ let package = Package(
     products: [
         .library(
             name: "Email Type",
-            targets: ["Email"]
+            targets: ["Email Type"]
         )
     ],
     dependencies: [
@@ -24,7 +24,7 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "Email",
+            name: "Email Type",
             dependencies: [
                 .product(name: "EmailAddress", package: "swift-emailaddress-type"),
                 .product(name: "RFC 2045", package: "swift-rfc-2045"),
@@ -34,7 +34,7 @@ let package = Package(
         ),
         .testTarget(
             name: "Email Type Tests",
-            dependencies: ["Email"]
+            dependencies: ["Email Type"]
         )
     ]
 )

@@ -65,7 +65,7 @@ struct ReadmeVerificationTests {
             ]
         )
 
-        #expect(email.additionalHeaders[RFC_5322.Header.Name("X-Campaign-ID")] == "newsletter-2024")
-        #expect(email.additionalHeaders[RFC_5322.Header.Name("X-Mailer")] == "MyApp 1.0")
+        #expect(email.additionalHeaders["X-Campaign-ID"] == "newsletter-2024")
+        #expect(email.additionalHeaders["X-Mailer"] == "MyApp 1.0")
     }
 }
