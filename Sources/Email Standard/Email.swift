@@ -1,5 +1,4 @@
-@_exported import EmailAddress
-import Foundation
+@_exported import EmailAddress_Standard
 @_exported import RFC_2045
 @_exported import RFC_2046
 @_exported import RFC_5322
@@ -47,6 +46,8 @@ public struct Email: Hashable, Sendable, CustomDebugStringConvertible {
     /// Blind carbon copy addresses
     public let bcc: [EmailAddress]?
 
+    public let date: RFC_5322.DateTime
+    
     /// Email subject line
     public let subject: String
 
@@ -80,6 +81,7 @@ public struct Email: Hashable, Sendable, CustomDebugStringConvertible {
         replyTo: EmailAddress? = nil,
         cc: [EmailAddress]? = nil,
         bcc: [EmailAddress]? = nil,
+        date: RFC_5322.DateTime,
         subject: String,
         body: Body,
         additionalHeaders: [RFC_5322.Header] = []
@@ -93,6 +95,7 @@ public struct Email: Hashable, Sendable, CustomDebugStringConvertible {
         self.replyTo = replyTo
         self.cc = cc
         self.bcc = bcc
+        self.date = date
         self.subject = subject
         self.body = body
         self.additionalHeaders = additionalHeaders
@@ -162,10 +165,10 @@ extension Email {
     /// ```
     public enum Body: Hashable, Sendable {
         /// Plain text content (stored as UTF-8 encoded data)
-        case text(Data, charset: RFC_2045.Charset)
+        case text([UInt8], charset: RFC_2045.Charset)
 
         /// HTML content (stored as UTF-8 encoded data)
-        case html(Data, charset: RFC_2045.Charset)
+        case html([UInt8], charset: RFC_2045.Charset)
 
         /// Multipart message (text + HTML alternatives, attachments, etc.)
         case multipart(RFC_2046.Multipart)
@@ -209,10 +212,10 @@ extension Email {
         public func render() -> String {
             switch self {
             case .text(let data, _):
-                return String(data: data, encoding: .utf8) ?? ""
+                return String(decoding: data, as: UTF8.self)
 
             case .html(let data, _):
-                return String(data: data, encoding: .utf8) ?? ""
+                return String(decoding: data, as: UTF8.self)
 
             case .multipart(let multipart):
                 return multipart.render()
@@ -225,12 +228,12 @@ extension Email {
         }
 
         /// The raw data content
-        public var data: Data {
+        public var data: [UInt8] {
             switch self {
             case .text(let data, _), .html(let data, _):
                 return data
             case .multipart(let multipart):
-                return Data(multipart.render().utf8)
+                return Array(multipart.render().utf8)
             }
         }
     }
@@ -246,7 +249,7 @@ extension Email.Body {
     ///   - charset: Character set (default: UTF-8)
     /// - Returns: A text email body
     public static func text(_ content: String, charset: RFC_2045.Charset = .utf8) -> Self {
-        .text(Data(content.utf8), charset: charset)
+        .text(Array(content.utf8), charset: charset)
     }
 
     /// Creates an HTML body from a String
@@ -256,26 +259,26 @@ extension Email.Body {
     ///   - charset: Character set (default: UTF-8)
     /// - Returns: An HTML email body
     public static func html(_ content: String, charset: RFC_2045.Charset = .utf8) -> Self {
-        .html(Data(content.utf8), charset: charset)
+        .html(Array(content.utf8), charset: charset)
     }
 
-    /// Creates a plain text body from Data
+    /// Creates a plain text body from bytes
     ///
     /// - Parameters:
-    ///   - content: The text content as data
+    ///   - content: The text content as bytes
     ///   - charset: Character set (default: UTF-8)
     /// - Returns: A text email body
-    public static func textData(_ content: Data, charset: RFC_2045.Charset = .utf8) -> Self {
+    public static func textData(_ content: [UInt8], charset: RFC_2045.Charset = .utf8) -> Self {
         .text(content, charset: charset)
     }
 
-    /// Creates an HTML body from Data
+    /// Creates an HTML body from bytes
     ///
     /// - Parameters:
-    ///   - content: The HTML content as data
+    ///   - content: The HTML content as bytes
     ///   - charset: Character set (default: UTF-8)
     /// - Returns: An HTML email body
-    public static func htmlData(_ content: Data, charset: RFC_2045.Charset = .utf8) -> Self {
+    public static func htmlData(_ content: [UInt8], charset: RFC_2045.Charset = .utf8) -> Self {
         .html(content, charset: charset)
     }
 }
@@ -312,6 +315,7 @@ extension Email {
     ///   - from: Sender address
     ///   - subject: Email subject
     ///   - text: Plain text content
+    ///   - timestamp: Message timestamp
     ///   - additionalHeaders: Additional headers
     /// - Throws: `Email.Error.emptyRecipients` if the `to` array is empty
     public init(
@@ -319,11 +323,13 @@ extension Email {
         from: EmailAddress,
         subject: String,
         text: String,
+        date: RFC_5322.DateTime,
         additionalHeaders: [RFC_5322.Header] = []
     ) throws {
         try self.init(
             to: to,
             from: from,
+            date: date,
             subject: subject,
             body: .text(text),
             additionalHeaders: additionalHeaders
@@ -337,6 +343,7 @@ extension Email {
     ///   - from: Sender address
     ///   - subject: Email subject
     ///   - html: HTML content
+    ///   - timestamp: Message timestamp
     ///   - additionalHeaders: Additional headers
     /// - Throws: `Email.Error.emptyRecipients` if the `to` array is empty
     public init(
@@ -344,11 +351,13 @@ extension Email {
         from: EmailAddress,
         subject: String,
         html: String,
+        date: RFC_5322.DateTime,
         additionalHeaders: [RFC_5322.Header] = []
     ) throws {
         try self.init(
             to: to,
             from: from,
+            date: date,
             subject: subject,
             body: .html(html),
             additionalHeaders: additionalHeaders
@@ -363,6 +372,7 @@ extension Email {
     ///   - subject: Email subject
     ///   - text: Plain text content
     ///   - html: HTML content
+    ///   - timestamp: Message timestamp
     ///   - additionalHeaders: Additional headers
     /// - Throws: `Email.Error.emptyRecipients` if the `to` array is empty
     public init(
@@ -371,11 +381,13 @@ extension Email {
         subject: String,
         text: String,
         html: String,
+        date: RFC_5322.DateTime,
         additionalHeaders: [RFC_5322.Header] = []
     ) throws {
         try self.init(
             to: to,
             from: from,
+            date: date,
             subject: subject,
             body: .multipart(try .alternative(textContent: text, htmlContent: html)),
             additionalHeaders: additionalHeaders
@@ -390,17 +402,17 @@ extension Email {
     ///
     /// Provides a summary showing sender, recipients, and subject for debugging contexts.
     public var debugDescription: String {
-        let recipients = to.map(\.addressValue).joined(separator: ", ")
-        var parts = ["From: \(from.addressValue)", "To: \(recipients)"]
+        let recipients = to.map(\.address).joined(separator: ", ")
+        var parts = ["From: \(from.address)", "To: \(recipients)"]
 
         if let replyTo = replyTo {
-            parts.append("Reply-To: \(replyTo.addressValue)")
+            parts.append("Reply-To: \(replyTo.address)")
         }
         if let cc = cc, !cc.isEmpty {
-            parts.append("CC: \(cc.map(\.addressValue).joined(separator: ", "))")
+            parts.append("CC: \(cc.map(\.address).joined(separator: ", "))")
         }
         if let bcc = bcc, !bcc.isEmpty {
-            parts.append("BCC: \(bcc.map(\.addressValue).joined(separator: ", "))")
+            parts.append("BCC: \(bcc.map(\.address).joined(separator: ", "))")
         }
 
         parts.append("Subject: \"\(subject)\"")
@@ -411,7 +423,7 @@ extension Email {
 
 extension Email: Codable {
     enum CodingKeys: String, CodingKey {
-        case to, from, replyTo, cc, bcc, subject, body, additionalHeaders
+        case to, from, replyTo, cc, bcc, date, subject, body, additionalHeaders
     }
 
     public init(from decoder: Decoder) throws {
@@ -421,6 +433,7 @@ extension Email: Codable {
         self.replyTo = try container.decodeIfPresent(EmailAddress.self, forKey: .replyTo)
         self.cc = try container.decodeIfPresent([EmailAddress].self, forKey: .cc)
         self.bcc = try container.decodeIfPresent([EmailAddress].self, forKey: .bcc)
+        self.date = try container.decode(RFC_5322.DateTime.self, forKey: .date)
         self.subject = try container.decode(String.self, forKey: .subject)
         self.body = try container.decode(Body.self, forKey: .body)
         self.additionalHeaders = try container.decode(
@@ -436,6 +449,7 @@ extension Email: Codable {
         try container.encodeIfPresent(replyTo, forKey: .replyTo)
         try container.encodeIfPresent(cc, forKey: .cc)
         try container.encodeIfPresent(bcc, forKey: .bcc)
+        try container.encode(date, forKey: .date)
         try container.encode(subject, forKey: .subject)
         try container.encode(body, forKey: .body)
         try container.encode(additionalHeaders, forKey: .additionalHeaders)
@@ -457,12 +471,12 @@ extension Email.Body: Codable {
 
         switch type {
         case .text:
-            let content = try container.decode(Data.self, forKey: .content)
+            let content = try container.decode([UInt8].self, forKey: .content)
             let charset = try container.decode(RFC_2045.Charset.self, forKey: .charset)
             self = .text(content, charset: charset)
 
         case .html:
-            let content = try container.decode(Data.self, forKey: .content)
+            let content = try container.decode([UInt8].self, forKey: .content)
             let charset = try container.decode(RFC_2045.Charset.self, forKey: .charset)
             self = .html(content, charset: charset)
 

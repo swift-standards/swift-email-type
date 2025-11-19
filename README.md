@@ -1,6 +1,6 @@
-# swift-email-type
+# swift-email-standard
 
-[![CI](https://github.com/swift-standards/swift-email-type/workflows/CI/badge.svg)](https://github.com/swift-standards/swift-email-type/actions/workflows/ci.yml)
+[![CI](https://github.com/swift-standards/swift-email-standard/workflows/CI/badge.svg)](https://github.com/swift-standards/swift-email-standard/actions/workflows/ci.yml)
 ![Development Status](https://img.shields.io/badge/status-active--development-blue.svg)
 
 Type-safe email message representation built on RFC standards
@@ -26,7 +26,7 @@ This package provides a Swift type for representing email messages. It's built o
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/coenttb/swift-email-type", branch: "main")
+    .package(url: "https://github.com/coenttb/swift-email-standard", branch: "main")
 ]
 ```
 
@@ -136,8 +136,8 @@ let headers = email.allHeaders
 let content = email.body.content
 
 // Individual properties
-print(email.from.addressValue)    // "sender@example.com"
-print(email.to.map(\.addressValue)) // ["recipient@example.com"]
+print(email.from.address)    // "sender@example.com"
+print(email.to.map(\.address)) // ["recipient@example.com"]
 print(email.subject)               // "Newsletter"
 ```
 
@@ -188,10 +188,10 @@ This type is designed to be provider-agnostic. Use it with email services like:
 extension Mailgun.Client {
     func send(_ email: Email) async throws {
         try await messages.send(
-            from: email.from.addressValue,
-            to: email.to.map(\.addressValue),
-            cc: email.cc?.map(\.addressValue),
-            bcc: email.bcc?.map(\.addressValue),
+            from: email.from.address,
+            to: email.to.map(\.address),
+            cc: email.cc?.map(\.address),
+            bcc: email.bcc?.map(\.address),
             subject: email.subject,
             html: email.body.content,
             headers: email.allHeaders
@@ -219,7 +219,7 @@ This package builds on these RFC standards:
 
 ## Related Packages
 
-- [swift-emailaddress-type](https://github.com/coenttb/swift-emailaddress-type) - Email address validation and RFC compliance
+- [swift-emailaddress-standard](https://github.com/coenttb/swift-emailaddress-standard) - Email address validation and RFC compliance
 - [swift-rfc-2045](https://github.com/coenttb/swift-rfc-2045) - MIME fundamentals
 - [swift-rfc-2046](https://github.com/coenttb/swift-rfc-2046) - MIME multipart support
 - [swift-subscriptions](https://github.com/coenttb/swift-subscriptions) - Subscription management with RFC 2369/8058 headers

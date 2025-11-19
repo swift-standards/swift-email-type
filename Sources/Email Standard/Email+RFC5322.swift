@@ -1,12 +1,11 @@
 //
 //  Email+RFC5322.swift
-//  swift-email-type
+//  swift-email-standard
 //
 //  Created by Coen ten Thije Boonkkamp on 12/11/2025.
 //
 
-import EmailAddress
-import Foundation
+import EmailAddress_Standard
 import RFC_5322
 
 extension RFC_5322.Message {
@@ -52,8 +51,11 @@ extension RFC_5322.Message {
         }
 
         // Generate Message-ID if not provided in additional headers
-        let messageId =
-            email.additionalHeaders[.messageId] ?? RFC_5322.Message.generateMessageId(from: from)
+        // TODO: Fix this later
+        let messageId = email.additionalHeaders[.messageId] ?? RFC_5322.Message.generateMessageId(
+            from: from,
+            uniqueId: "FIX TO DO LATER"
+        )
 
         // Get body data
         let bodyData = email.body.data
@@ -77,10 +79,10 @@ extension RFC_5322.Message {
             cc: cc,
             bcc: bcc,  // Stored for SMTP envelope; excluded from rendered message headers
             replyTo: replyTo,
+            date: email.date,
             subject: email.subject,
-            date: Date(),  // Current date for message generation
             messageId: messageId,
-            body: bodyData,
+            body: Array(bodyData),
             additionalHeaders: additionalHeaders
         )
     }

@@ -1,7 +1,6 @@
-import Foundation
 import Testing
 
-@testable import Email_Type
+@testable import Email_Standard
 
 @Suite("README Verification")
 struct ReadmeVerificationTests {
@@ -13,11 +12,12 @@ struct ReadmeVerificationTests {
             to: [EmailAddress("recipient@example.com")],
             from: EmailAddress("sender@example.com"),
             subject: "Welcome!",
-            html: "<h1>Welcome to our service!</h1>"
+            html: "<h1>Welcome to our service!</h1>",
+            date: RFC_5322.DateTime(secondsSinceEpoch: 1609459200)
         )
 
         #expect(email.to.count == 1)
-        #expect(email.from.addressValue == "sender@example.com")
+        #expect(email.from.address == "sender@example.com")
         #expect(email.subject == "Welcome!")
     }
 
@@ -28,7 +28,8 @@ struct ReadmeVerificationTests {
             to: [EmailAddress("recipient@example.com")],
             from: EmailAddress("sender@example.com"),
             subject: "Hello",
-            text: "Hello, World!"
+            text: "Hello, World!",
+            date: RFC_5322.DateTime(secondsSinceEpoch: 1609459200)
         )
 
         #expect(email.subject == "Hello")
@@ -43,7 +44,8 @@ struct ReadmeVerificationTests {
             from: EmailAddress("sender@example.com"),
             subject: "Newsletter",
             text: "Plain text version of newsletter",
-            html: "<h1>HTML version</h1><p>Newsletter content...</p>"
+            html: "<h1>HTML version</h1><p>Newsletter content...</p>",
+            date: RFC_5322.DateTime(secondsSinceEpoch: 1609459200)
         )
 
         #expect(email.subject == "Newsletter")
@@ -59,6 +61,7 @@ struct ReadmeVerificationTests {
             from: EmailAddress("sender@example.com"),
             subject: "Tracked Email",
             html: "<h1>Hello!</h1>",
+            date: RFC_5322.DateTime(secondsSinceEpoch: 1609459200),
             additionalHeaders: [
                 .init(name: "X-Campaign-ID", value: "newsletter-2024"),
                 .init(name: "X-Mailer", value: "MyApp 1.0"),

@@ -1,16 +1,15 @@
 //
 //  EmailRFC5322Tests.swift
-//  swift-email-type
+//  swift-email-standard
 //
 //  Created by Coen ten Thije Boonkkamp on 12/11/2025.
 //
 
-import EmailAddress
-import Foundation
+import EmailAddress_Standard
 import RFC_5322
 import Testing
 
-@testable import Email_Type
+@testable import Email_Standard
 
 @Suite("Email to RFC 5322 Message Conversion")
 struct EmailRFC5322Tests {
@@ -20,15 +19,16 @@ struct EmailRFC5322Tests {
         let email = try Email(
             to: [EmailAddress("recipient@example.com")],
             from: EmailAddress("sender@example.com"),
+            date: RFC_5322.DateTime(secondsSinceEpoch: 1609459200),
             subject: "Test Email",
             body: "Hello, World!"  // ExpressibleByStringLiteral
         )
 
         let message = try RFC_5322.Message(from: email)
 
-        #expect(message.from.addressValue == "sender@example.com")
+        #expect(message.from.address == "sender@example.com")
         #expect(message.to.count == 1)
-        #expect(message.to[0].addressValue == "recipient@example.com")
+        #expect(message.to[0].address == "recipient@example.com")
         #expect(message.subject == "Test Email")
         #expect(message.bodyString == "Hello, World!")
 
@@ -44,6 +44,7 @@ struct EmailRFC5322Tests {
         let email = try Email(
             to: [EmailAddress("recipient@example.com")],
             from: EmailAddress("sender@example.com"),
+            date: RFC_5322.DateTime(secondsSinceEpoch: 1609459200),
             subject: "HTML Test",
             body: .html("<h1>Hello, World!</h1>")
         )
@@ -67,6 +68,7 @@ struct EmailRFC5322Tests {
         let email = try Email(
             to: [EmailAddress("recipient@example.com")],
             from: EmailAddress("sender@example.com"),
+            date: RFC_5322.DateTime(secondsSinceEpoch: 1609459200),
             subject: "Multipart Test",
             body: .multipart(multipart)
         )
@@ -86,15 +88,16 @@ struct EmailRFC5322Tests {
             from: EmailAddress("sender@example.com"),
             replyTo: EmailAddress("reply@example.com"),
             cc: [EmailAddress("cc@example.com")],
+            date: RFC_5322.DateTime(secondsSinceEpoch: 1609459200),
             subject: "Test with CC",
             body: "Test body"
         )
 
         let message = try RFC_5322.Message(from: email)
 
-        #expect(message.replyTo?.addressValue == "reply@example.com")
+        #expect(message.replyTo?.address == "reply@example.com")
         #expect(message.cc?.count == 1)
-        #expect(message.cc?[0].addressValue == "cc@example.com")
+        #expect(message.cc?[0].address == "cc@example.com")
 
         let rendered = message.render()
         #expect(rendered.contains("Reply-To: reply@example.com"))
@@ -106,6 +109,7 @@ struct EmailRFC5322Tests {
         let email = try Email(
             to: [EmailAddress("recipient@example.com")],
             from: EmailAddress("sender@example.com"),
+            date: RFC_5322.DateTime(secondsSinceEpoch: 1609459200),
             subject: "Test",
             body: "Test",
             additionalHeaders: [
@@ -126,6 +130,7 @@ struct EmailRFC5322Tests {
         let email = try Email(
             to: [EmailAddress("recipient@example.com")],
             from: EmailAddress("sender@example.com"),
+            date: RFC_5322.DateTime(secondsSinceEpoch: 1609459200),
             subject: "Test",
             body: "Test"
         )
@@ -142,6 +147,7 @@ struct EmailRFC5322Tests {
         let email = try Email(
             to: [EmailAddress("recipient@example.com")],
             from: EmailAddress("sender@example.com"),
+            date: RFC_5322.DateTime(secondsSinceEpoch: 1609459200),
             subject: "Test Email",
             body: "Hello, World!"
         )
